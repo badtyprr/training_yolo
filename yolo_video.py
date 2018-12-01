@@ -25,6 +25,8 @@ ap.add_argument("-c", "--confidence", type=float, default=0.5,
                 help="minimum probability to filter weak detections")
 ap.add_argument("-t", "--threshold", type=float, default=0.3,
                 help="threshold when applyong non-maxima suppression")
+ap.add_argument("-g", "--grayscale", type=bool, default=False,
+                help="converts color images to grayscale")
 args = vars(ap.parse_args())
 
 # load the COCO class labels our YOLO model was trained on
@@ -40,8 +42,8 @@ COLORS = np.random.randint(0, 255, size=(len(LABELS), 3),
 # See Siddha Ganju's work at Deep Vision on embedded deep learning
 # Source: https://twimlai.com/twiml-talk-95-embedded-deep-learning-deep-vision-siddha-ganju/
 # Source: http://www.deepvisioncorp.com/
-weightsPath = os.path.sep.join([args["yolo"], "yolov3-tiny.weights"])
-configPath = os.path.sep.join([args["yolo"], "yolov3-tiny.cfg"])
+weightsPath = os.path.sep.join([args["yolo"], "yolov3.weights"])
+configPath = os.path.sep.join([args["yolo"], "yolov3.cfg"])
 
 # load our YOLO object detector trained on COCO dataset (80 classes)
 # and determine only the *output* layer names that we need from YOLO
@@ -83,6 +85,13 @@ while True:
     # if the frame dimensions are empty, grab them
     if W is None or H is None:
         (H, W) = frame.shape[:2]
+
+    # If switched, convert to grayscale
+    try:
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
+    except KeyError:
+        pass
 
     # construct a blob from the input frame and then perform a forward
     # pass of the YOLO object detector, giving us our bounding boxes
